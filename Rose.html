@@ -1,0 +1,583 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+  <title>Mother's Day Care Game</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #FFF5F5; }
+    #game-container { width: 100vw; height: 100vh; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+</head>
+<body>
+  <div id="game-container"></div>
+  <script>
+    const GAME_WIDTH = 540;
+    const GAME_HEIGHT = 960;
+    const PLAYER_SPEED = 220;
+    const INTERACTION_DISTANCE = 60;
+    const INTERACTION_HOLD_MS = 800;
+
+    const TASKS = [
+      { id: "feed", name: "Feed the Baby", emoji: "🍼", x: 80, y: 200, color: 0x87CEEB },
+      { id: "play", name: "Play Together", emoji: "🧸", x: 460, y: 200, color: 0xFFB6C1 },
+      { id: "homework", name: "Help Homework", emoji: "📚", x: 80, y: 450, color: 0x98FB98 },
+      { id: "meal", name: "Prepare Meal", emoji: "🍽️", x: 460, y: 450, color: 0xFFD700 },
+      { id: "bedtime", name: "Bedtime Story", emoji: "🛏️", x: 270, y: 650, color: 0xDDA0DD },
+    ];
+
+    class BootScene extends Phaser.Scene {
+      constructor() { super({ key: "BootScene" }); }
+
+      preload() {
+        this.createTextures();
+      }
+
+      create() {
+        this.scene.start("GameScene");
+      }
+
+      createTextures() {
+        this.createMotherTexture();
+        this.createChildTexture();
+        this.createRoseTexture();
+        this.createHeartTexture();
+        this.createProgressTextures();
+        this.createButtonTexture();
+        this.createHomeTexture();
+        this.createJoystickTextures();
+      }
+
+      createMotherTexture() {
+        const size = 64;
+        const canvas = document.createElement("canvas");
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#ffdbac";
+        ctx.beginPath(); ctx.arc(size / 2, 18, 14, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = "#4a3b2a";
+        ctx.fillRect(size / 2 - 16, 4, 32, 16);
+
+        ctx.fillStyle = "#e74c3c";
+        ctx.beginPath();
+        ctx.moveTo(size / 2, 34);
+        ctx.lineTo(size / 2 - 18, 62);
+        ctx.lineTo(size / 2 + 18, 62);
+        ctx.closePath(); ctx.fill();
+
+        ctx.fillStyle = "#ffdbac";
+        ctx.fillRect(size / 2 - 14, 32, 28, 18);
+
+        ctx.fillStyle = "#c0392b";
+        ctx.fillRect(size / 2 - 16, 50, 10, 14);
+        ctx.fillRect(size / 2 + 6, 50, 10, 14);
+
+        this.textures.addCanvas("mother", canvas);
+      }
+
+      createChildTexture() {
+        const size = 48;
+        const canvas = document.createElement("canvas");
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#ffe0bd";
+        ctx.beginPath(); ctx.arc(size / 2, 14, 11, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = "#f1c40f";
+        ctx.fillRect(size / 2 - 13, 4, 26, 12);
+
+        ctx.fillStyle = "#3498db";
+        ctx.beginPath();
+        ctx.moveTo(size / 2, 28);
+        ctx.lineTo(size / 2 - 14, 46);
+        ctx.lineTo(size / 2 + 14, 46);
+        ctx.closePath(); ctx.fill();
+
+        ctx.fillStyle = "#ffe0bd";
+        ctx.fillRect(size / 2 - 10, 26, 20, 12);
+
+        ctx.fillStyle = "#2980b9";
+        ctx.fillRect(size / 2 - 12, 42, 8, 6);
+        ctx.fillRect(size / 2 + 4, 42, 8, 6);
+
+        this.textures.addCanvas("child", canvas);
+      }
+
+      createRoseTexture() {
+        const size = 48;
+        const canvas = document.createElement("canvas");
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext("2d");
+
+        ctx.strokeStyle = "#2ecc71"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(size / 2, 46); ctx.lineTo(size / 2, 22); ctx.stroke();
+
+        ctx.fillStyle = "#2ecc71";
+        ctx.beginPath(); ctx.ellipse(size / 2 + 6, 32, 6, 3, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(size / 2 - 6, 28, 6, 3, -Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = "#e74c3c";
+        ctx.beginPath(); ctx.arc(size / 2, 14, 12, 0, Math.PI * 2); ctx.fill();
+
+        ctx.fillStyle = "#c0392b";
+        ctx.beginPath(); ctx.arc(size / 2 - 3, 11, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(size / 2 + 4, 16, 4, 0, Math.PI * 2); ctx.fill();
+
+        this.textures.addCanvas("rose", canvas);
+      }
+
+      createHeartTexture() {
+        const size = 32;
+        const canvas = document.createElement("canvas");
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#e91e63";
+        ctx.beginPath();
+        ctx.moveTo(size / 2, size * 0.85);
+        ctx.bezierCurveTo(size / 2, size * 0.65, 0, size * 0.4, 0, size * 0.25);
+        ctx.bezierCurveTo(0, 0, size * 0.3, 0, size / 2, size * 0.15);
+        ctx.bezierCurveTo(size * 0.7, 0, size, 0, size, size * 0.25);
+        ctx.bezierCurveTo(size, size * 0.4, size / 2, size * 0.65, size / 2, size * 0.85);
+        ctx.closePath(); ctx.fill();
+
+        this.textures.addCanvas("heart", canvas);
+      }
+
+      createProgressTextures() {
+        const w = 200, h = 24;
+        let canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        let ctx = canvas.getContext("2d");
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath(); ctx.roundRect(0, 0, w, h, 12); ctx.fill();
+        this.textures.addCanvas("progress_bg", canvas);
+
+        canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#e91e63";
+        ctx.beginPath(); ctx.roundRect(0, 0, w, h, 12); ctx.fill();
+        this.textures.addCanvas("progress_fill", canvas);
+      }
+
+      createButtonTexture() {
+        const w = 160, h = 50;
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#e91e63";
+        ctx.beginPath(); ctx.roundRect(0, 0, w, h, 12); ctx.fill();
+        this.textures.addCanvas("button", canvas);
+      }
+
+      createHomeTexture() {
+        const w = GAME_WIDTH, h = GAME_HEIGHT;
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "#FFF5F5"; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#F0E6E6";
+        for (let i = 0; i < 20; i++) {
+          const x = Math.random() * w, y = Math.random() * h, r = 2 + Math.random() * 4;
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = "#E8D5D5";
+        ctx.fillRect(20, h * 0.55, w - 40, 8);
+        ctx.fillRect(20, h * 0.75, w - 40, 8);
+        ctx.fillStyle = "#D4C4C4";
+        ctx.fillRect(40, h * 0.55, 6, h * 0.2);
+        ctx.fillRect(w - 46, h * 0.55, 6, h * 0.2);
+        ctx.fillRect(40, h * 0.75, 6, h * 0.18);
+        ctx.fillRect(w - 46, h * 0.75, 6, h * 0.18);
+
+        this.textures.addCanvas("home_bg", canvas);
+      }
+
+      createJoystickTextures() {
+        const size = 120;
+        const canvas = document.createElement("canvas");
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.beginPath(); ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2); ctx.fill();
+        this.textures.addCanvas("joystick_base", canvas);
+
+        const size2 = 50;
+        const canvas2 = document.createElement("canvas");
+        canvas2.width = size2; canvas2.height = size2;
+        const ctx2 = canvas2.getContext("2d");
+        ctx2.fillStyle = "rgba(255,255,255,0.8)";
+        ctx2.beginPath(); ctx2.arc(size2 / 2, size2 / 2, size2 / 2, 0, Math.PI * 2); ctx2.fill();
+        this.textures.addCanvas("joystick_thumb", canvas2);
+      }
+    }
+
+    class GameScene extends Phaser.Scene {
+      constructor() { super({ key: "GameScene" }); }
+
+      create() {
+        this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "home_bg");
+        this.tasks = new Map();
+        this.allComplete = false;
+        this.currentTaskId = null;
+
+        this.createChild();
+        this.createMother();
+        this.createTasks();
+        this.createUI();
+        this.createJoystick();
+        this.createInteractionIndicator();
+
+        this.physics.add.collider(this.mother, this.createBoundaries());
+        if (this.input.keyboard) this.input.keyboard.addCapture("UP,DOWN,LEFT,RIGHT,SPACE");
+      }
+
+      createBoundaries() {
+        const walls = this.physics.add.staticGroup();
+        const t = 20;
+        walls.add(this.add.rectangle(GAME_WIDTH / 2, -t / 2, GAME_WIDTH, t).setVisible(false));
+        walls.add(this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT + t / 2, GAME_WIDTH, t).setVisible(false));
+        walls.add(this.add.rectangle(-t / 2, GAME_HEIGHT / 2, t, GAME_HEIGHT).setVisible(false));
+        walls.add(this.add.rectangle(GAME_WIDTH + t / 2, GAME_HEIGHT / 2, t, GAME_HEIGHT).setVisible(false));
+        return walls;
+      }
+
+      createMother() {
+        this.mother = this.physics.add.sprite(GAME_WIDTH / 2, GAME_HEIGHT * 0.8, "mother");
+        this.mother.setCollideWorldBounds(true);
+        this.mother.body.setSize(32, 32);
+        this.mother.body.setOffset(16, 16);
+      }
+
+      createChild() {
+        this.child = this.add.sprite(GAME_WIDTH / 2, GAME_HEIGHT * 0.15, "child");
+        this.tweens.add({
+          targets: this.child, y: this.child.y - 6,
+          duration: 1000, yoyo: true, repeat: -1, ease: "Sine.easeInOut",
+        });
+      }
+
+      createTasks() {
+        TASKS.forEach((task) => {
+          const container = this.add.container(task.x, task.y);
+          const bg = this.add.graphics();
+          bg.fillStyle(task.color, 0.3);
+          bg.fillCircle(0, 0, 36);
+          bg.lineStyle(3, task.color, 0.8);
+          bg.strokeCircle(0, 0, 36);
+
+          const emoji = this.add.text(0, 0, task.emoji, { fontSize: "32px", align: "center" }).setOrigin(0.5);
+          container.add([bg, emoji]);
+          container.setSize(72, 72);
+          container.setInteractive(new Phaser.Geom.Circle(0, 0, 36), Phaser.Geom.Circle.Contains);
+
+          this.tweens.add({
+            targets: container, scaleX: 1.1, scaleY: 1.1,
+            duration: 800, yoyo: true, repeat: -1, ease: "Sine.easeInOut",
+          });
+
+          this.tasks.set(task.id, { completed: false, sprite: container, progressBar: null });
+        });
+      }
+
+      createUI() {
+        const barX = GAME_WIDTH / 2, barY = 32;
+        this.progressBarBg = this.add.sprite(barX, barY, "progress_bg");
+        this.progressBarFill = this.add.sprite(barX - 100, barY, "progress_fill").setOrigin(0, 0.5).setScale(0, 1);
+        this.progressText = this.add.text(barX, barY, "Tasks: 0/5", {
+          fontSize: "14px", color: "#ffffff", fontFamily: "Arial, sans-serif", fontStyle: "bold",
+        }).setOrigin(0.5);
+      }
+
+      createJoystick() {
+        const baseX = 90, baseY = GAME_HEIGHT - 110;
+        this.joystickBase = this.add.sprite(baseX, baseY, "joystick_base").setAlpha(0.6);
+        this.joystickThumb = this.add.sprite(baseX, baseY, "joystick_thumb").setAlpha(0.9);
+        this.joystickCenter = { x: baseX, y: baseY };
+        this.joystickActive = false;
+        this.joystickPointerId = null;
+
+        this.input.on("pointerdown", (pointer) => {
+          if (pointer.x < GAME_WIDTH * 0.5 && pointer.y > GAME_HEIGHT * 0.6) {
+            this.joystickActive = true;
+            this.joystickPointerId = pointer.id;
+            this.joystickBase.setPosition(pointer.x, pointer.y);
+            this.joystickThumb.setPosition(pointer.x, pointer.y);
+            this.joystickCenter = { x: pointer.x, y: pointer.y };
+            this.joystickBase.setAlpha(0.8);
+            this.joystickThumb.setAlpha(1);
+          }
+        });
+
+        this.input.on("pointermove", (pointer) => {
+          if (!this.joystickActive || pointer.id !== this.joystickPointerId) return;
+          const dx = pointer.x - this.joystickCenter.x;
+          const dy = pointer.y - this.joystickCenter.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const maxDist = 45;
+          if (dist > maxDist) {
+            const angle = Math.atan2(dy, dx);
+            this.joystickThumb.setPosition(
+              this.joystickCenter.x + Math.cos(angle) * maxDist,
+              this.joystickCenter.y + Math.sin(angle) * maxDist
+            );
+          } else {
+            this.joystickThumb.setPosition(pointer.x, pointer.y);
+          }
+        });
+
+        this.input.on("pointerup", (pointer) => {
+          if (pointer.id === this.joystickPointerId) {
+            this.joystickActive = false;
+            this.joystickPointerId = null;
+            this.joystickThumb.setPosition(this.joystickCenter.x, this.joystickCenter.y);
+            this.joystickBase.setAlpha(0.6);
+            this.joystickThumb.setAlpha(0.9);
+            this.mother.body.setVelocity(0, 0);
+          }
+        });
+      }
+
+      createInteractionIndicator() {
+        this.interactionGraphics = this.add.graphics();
+        this.taskIndicator = this.add.text(0, 0, "", {
+          fontSize: "16px", color: "#e91e63", fontFamily: "Arial, sans-serif", fontStyle: "bold",
+          backgroundColor: "#ffffffcc", padding: { x: 8, y: 4 },
+        }).setOrigin(0.5).setVisible(false);
+      }
+
+      update() {
+        if (this.allComplete) return;
+        this.handleMovement();
+        this.checkTaskProximity();
+        this.updateInteractionVisuals();
+      }
+
+      handleMovement() {
+        let vx = 0, vy = 0;
+        if (this.joystickActive) {
+          const dx = this.joystickThumb.x - this.joystickCenter.x;
+          const dy = this.joystickThumb.y - this.joystickCenter.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist > 5) {
+            const nx = dx / dist, ny = dy / dist;
+            vx = nx * PLAYER_SPEED * (dist / 45);
+            vy = ny * PLAYER_SPEED * (dist / 45);
+          }
+        }
+        const cursors = this.input.keyboard ? this.input.keyboard.createCursorKeys() : null;
+        if (cursors) {
+          if (cursors.left && cursors.left.isDown) vx = -PLAYER_SPEED;
+          if (cursors.right && cursors.right.isDown) vx = PLAYER_SPEED;
+          if (cursors.up && cursors.up.isDown) vy = -PLAYER_SPEED;
+          if (cursors.down && cursors.down.isDown) vy = PLAYER_SPEED;
+        }
+        this.mother.body.setVelocity(vx, vy);
+        if (Math.abs(vx) > 10) this.mother.setFlipX(vx < 0);
+      }
+
+      checkTaskProximity() {
+        let nearTask = false;
+        TASKS.forEach((task) => {
+          const state = this.tasks.get(task.id);
+          if (!state || state.completed) return;
+          const dist = Phaser.Math.Distance.Between(this.mother.x, this.mother.y, task.x, task.y);
+          if (dist < INTERACTION_DISTANCE) {
+            nearTask = true;
+            if (this.currentTaskId !== task.id) this.startInteraction(task.id);
+          }
+        });
+        if (!nearTask && this.currentTaskId) this.cancelInteraction();
+      }
+
+      startInteraction(taskId) {
+        this.currentTaskId = taskId;
+        this.interactionTimer = this.time.delayedCall(INTERACTION_HOLD_MS, () => this.completeTask(taskId));
+      }
+
+      cancelInteraction() {
+        this.currentTaskId = null;
+        if (this.interactionTimer) { this.interactionTimer.remove(); this.interactionTimer = null; }
+      }
+
+      completeTask(taskId) {
+        const state = this.tasks.get(taskId);
+        if (!state || state.completed) return;
+        state.completed = true;
+        state.sprite.list[0].setAlpha(0.3);
+        state.sprite.list[1].setAlpha(0.3);
+        this.tweens.killTweensOf(state.sprite);
+        state.sprite.setScale(1);
+        this.spawnHearts(state.sprite.x, state.sprite.y);
+        this.updateProgress();
+        const completedCount = Array.from(this.tasks.values()).filter(t => t.completed).length;
+        if (completedCount === TASKS.length) {
+          this.allComplete = true;
+          this.mother.body.setVelocity(0, 0);
+          this.time.delayedCall(800, () => this.triggerCompletion());
+        }
+      }
+
+      spawnHearts(x, y) {
+        for (let i = 0; i < 5; i++) {
+          const heart = this.add.sprite(x + (Math.random() - 0.5) * 40, y, "heart").setScale(0.5);
+          this.tweens.add({
+            targets: heart, y: y - 60 - Math.random() * 40, alpha: 0, scaleX: 0.2, scaleY: 0.2,
+            duration: 800 + Math.random() * 400, ease: "Power2", onComplete: () => heart.destroy(),
+          });
+        }
+      }
+
+      updateProgress() {
+        const completed = Array.from(this.tasks.values()).filter(t => t.completed).length;
+        const ratio = completed / TASKS.length;
+        this.progressBarFill.setScale(ratio, 1);
+        this.progressBarFill.setPosition(this.progressBarBg.x - 100, this.progressBarBg.y);
+        this.progressText.setText(`Tasks: ${completed}/${TASKS.length}`);
+      }
+
+      updateInteractionVisuals() {
+        this.interactionGraphics.clear();
+        if (this.currentTaskId && !this.allComplete) {
+          const task = TASKS.find(t => t.id === this.currentTaskId);
+          if (task) {
+            const elapsed = this.interactionTimer ? INTERACTION_HOLD_MS - this.interactionTimer.getRemaining() : 0;
+            const progress = Math.min(elapsed / INTERACTION_HOLD_MS, 1);
+            this.interactionGraphics.lineStyle(4, 0xe91e63, 0.8);
+            this.interactionGraphics.beginPath();
+            this.interactionGraphics.arc(task.x, task.y, 40, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+            this.interactionGraphics.strokePath();
+            this.taskIndicator.setPosition(task.x, task.y - 55);
+            this.taskIndicator.setText(`Hold... ${Math.round(progress * 100)}%`);
+            this.taskIndicator.setVisible(true);
+          }
+        } else {
+          this.taskIndicator.setVisible(false);
+        }
+      }
+
+      triggerCompletion() {
+        this.scene.start("CompletionScene");
+      }
+    }
+
+    class CompletionScene extends Phaser.Scene {
+      constructor() { super({ key: "CompletionScene" }); }
+
+      create() {
+        this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, "home_bg");
+        this.createFloatingHearts();
+        this.createCharacters();
+        this.createRoseAnimation();
+        this.createMessage();
+        this.createRestartButton();
+      }
+
+      createFloatingHearts() {
+        for (let i = 0; i < 15; i++) {
+          const x = Math.random() * GAME_WIDTH;
+          const y = GAME_HEIGHT + Math.random() * 100;
+          const heart = this.add.sprite(x, y, "heart").setScale(0.3 + Math.random() * 0.4).setAlpha(0.6 + Math.random() * 0.4);
+          this.tweens.add({
+            targets: heart, y: -50, x: x + (Math.random() - 0.5) * 100,
+            duration: 4000 + Math.random() * 3000, ease: "Sine.easeInOut", repeat: -1, delay: Math.random() * 3000,
+          });
+        }
+      }
+
+      createCharacters() {
+        const motherX = GAME_WIDTH * 0.35, childX = GAME_WIDTH * 0.65, charY = GAME_HEIGHT * 0.4;
+        const mother = this.add.sprite(motherX, charY, "mother").setScale(1.5);
+        const child = this.add.sprite(childX, charY + 20, "child").setScale(1.3);
+        this.tweens.add({ targets: mother, y: charY - 8, duration: 1200, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+        this.tweens.add({ targets: child, y: charY + 20 - 6, duration: 1000, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+      }
+
+      createRoseAnimation() {
+        const rose = this.add.sprite(GAME_WIDTH * 0.5, GAME_HEIGHT * 0.28, "rose").setScale(0).setAlpha(0);
+        this.tweens.add({ targets: rose, scaleX: 1.2, scaleY: 1.2, alpha: 1, duration: 800, ease: "Back.easeOut", delay: 500 });
+        this.tweens.add({ targets: rose, angle: 10, duration: 1000, yoyo: true, repeat: -1, ease: "Sine.easeInOut", delay: 1300 });
+      }
+
+      createMessage() {
+        const bg = this.add.graphics();
+        bg.fillStyle(0xffffff, 0.95);
+        bg.fillRoundedRect(20, GAME_HEIGHT * 0.52, GAME_WIDTH - 40, 180, 20);
+        bg.lineStyle(3, 0xe91e63, 0.6);
+        bg.strokeRoundedRect(20, GAME_HEIGHT * 0.52, GAME_WIDTH - 40, 180, 20);
+
+        const title = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.58, "Happy Mother's Day!", {
+          fontSize: "32px", color: "#e91e63", fontFamily: "Arial, sans-serif", fontStyle: "bold", align: "center",
+        }).setOrigin(0.5).setAlpha(0);
+
+        const subtitle = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.65, "Thank you for everything, Mom!", {
+          fontSize: "18px", color: "#555555", fontFamily: "Arial, sans-serif", align: "center",
+        }).setOrigin(0.5).setAlpha(0);
+
+        const loveText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.7, "From your loving child", {
+          fontSize: "16px", color: "#888888", fontFamily: "Arial, sans-serif", fontStyle: "italic", align: "center",
+        }).setOrigin(0.5).setAlpha(0);
+
+        this.tweens.add({ targets: title, alpha: 1, duration: 1000, delay: 300, ease: "Power2" });
+        this.tweens.add({ targets: subtitle, alpha: 1, duration: 800, delay: 800, ease: "Power2" });
+        this.tweens.add({ targets: loveText, alpha: 1, duration: 800, delay: 1200, ease: "Power2" });
+      }
+
+      createRestartButton() {
+        const btnY = GAME_HEIGHT * 0.85;
+        const btnBg = this.add.sprite(GAME_WIDTH / 2, btnY, "button").setInteractive();
+        const btnText = this.add.text(GAME_WIDTH / 2, btnY, "Play Again", {
+          fontSize: "20px", color: "#ffffff", fontFamily: "Arial, sans-serif", fontStyle: "bold",
+        }).setOrigin(0.5);
+        btnBg.setAlpha(0); btnText.setAlpha(0);
+        this.tweens.add({ targets: [btnBg, btnText], alpha: 1, duration: 800, delay: 1800, ease: "Power2" });
+
+        btnBg.on("pointerover", () => { btnBg.setScale(1.05); this.input.setDefaultCursor("pointer"); });
+        btnBg.on("pointerout", () => { btnBg.setScale(1); this.input.setDefaultCursor("default"); });
+        btnBg.on("pointerdown", () => this.scene.start("GameScene"));
+      }
+    }
+
+    const config = {
+      type: Phaser.AUTO,
+      parent: "game-container",
+      width: GAME_WIDTH,
+      height: GAME_HEIGHT,
+      backgroundColor: 0xfff5f5,
+      physics: {
+        default: "arcade",
+        arcade: { gravity: { x: 0, y: 0 }, debug: false },
+      },
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+      },
+      scene: [BootScene, GameScene, CompletionScene],
+    };
+
+    new Phaser.Game(config);
+  </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0" />
+  </head>
+  <body style="margin:0;overflow:hidden;width:100vw;height:100vh;background:#FFF5F5;">
+    <div id="root" style="width:100vw;height:100vh;overflow:hidden;"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
